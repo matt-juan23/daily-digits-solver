@@ -1,80 +1,57 @@
-from itertools import product
-from datetime import date
-from math import sqrt
+import os
+from selenium import webdriver
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
+from selenium.webdriver.chrome.options import Options
+from selenium.webdriver.common.by import By
 
-dailyDigits = ["2", "4", "0", "0"]
-operators = ["+", "-", "*", "/", 'p']
+from daily_digits_solver import generateResults
 
-def get_digit_combos(digits, combos, currCombo):
-    if digits == []:
-        # print(currCombo, combos)
-        return currCombo
-    n = 1
-    numDigits = len(digits)
-    for _ in range(numDigits):
-        currCombo.append("".join(digits[:n])) # join the first n digits
-        currComboCopy = currCombo.copy()[:-1] # get the old combo without the last element
-        currCombo = get_digit_combos(digits[n:], combos, currCombo)
-        if currCombo:
-            # print(currCombo)
-            combos.append(currCombo)
-        currCombo = currComboCopy
-        n += 1
-    return None
+def getElementByCSSPath(path):
+    element = WebDriverWait(browser, 3).until(EC.presence_of_element_located((By.CSS_SELECTOR, path)))
+    return element
 
-def create_formula(numbers, signs, roots, operators):
-    formula = ""
-    for i in range(len(numbers)):
-        if roots[i]:
-            formula += sign[i] + "sqrt(" + numbers[i] + ")"
+def getElementByID(id):
+    element = WebDriverWait(browser, 3).until(EC.presence_of_element_located((By.ID, id)))
+    return element
+
+def getDailyDigits():
+    dailyDigits = []
+    for i in range(1,5):
+        dailyDigits.append(getElementByID("b" + str(i)).text)
+    return dailyDigits
+
+def enterSolution(formula):
+    num = 1
+    for value in formula:
+        if value.isnumeric():
+            getElementByID("b"+str(num)).click()
+            num += 1
         else:
-            formula += sign[i] + numbers[i]
-        if i != len(numbers) - 1:
-            # len(operators) == len(numbers) - 1
-            formula += operators[i]
-    formula = formula.replace("p", "**")
-    return formula
+            getElementByID(mapping[value]).click()
+    getElementByID("bsubmit").click()
 
-combos = []
-_ = get_digit_combos(dailyDigits, combos, [])
-# print(combos)
+mapping = {"+": "bplus", "-": "bminus", "*": "bmultiply", "/": "bdivide", "s": "broot", "p": "bpower"}
 
-# signs = {}
-# for i in range(5):
-#     signs[i] = list(product(["","-"], repeat=i))
-signs = {0: [()], 1: [('',), ('-',)], 2: [('', ''), ('', '-'), ('-', ''), ('-', '-')], 3: [('', '', ''), ('', '', '-'), ('', '-', ''), ('', '-', '-'), ('-', '', ''), ('-', '', '-'), ('-', '-', ''), ('-', '-', '-')], 4: [('', '', '', ''), ('', '', '', '-'), ('', '', '-', ''), ('', '', '-', '-'), ('', '-', '', ''), ('', '-', '', '-'), ('', '-', '-', ''), ('', '-', '-', '-'), ('-', '', '', ''), ('-', '', '', '-'), ('-', '', '-', ''), ('-', '', '-', '-'), ('-', '-', '', ''), ('-', '-', '', '-'), ('-', '-', '-', ''), ('-', '-', '-', '-')]}
+try:
+    username = os.environ["DailyDigitsUsername"]
+    password = os.environ["DailyDigitsPassword"]
+except:
+    print("USERNAME OR PASSWORD IS NOT SET")
+    exit()
 
-# sqrts = {}
-# for i in range(5):
-#     sqrts[i] = list(product([False, True], repeat=i))
-sqrts = {0: [()], 1: [(False,), (True,)], 2: [(False, False), (False, True), (True, False), (True, True)], 3: [(False, False, False), (False, False, True), (False, True, False), (False, True, True), (True, False, False), (True, False, True), (True, True, False), (True, True, True)], 4: [(False, False, False, False), (False, False, False, True), (False, False, True, False), (False, False, True, True), (False, True, False, False), (False, True, False, True), (False, True, True, False), (False, True, True, True), (True, False, False, False), (True, False, False, True), (True, False, True, False), (True, False, True, True), (True, True, False, False), (True, True, False, True), (True, True, True, False), (True, True, True, True)]}
+chrome_options = Options()
+chrome_options.add_experimental_option("detach", True)
+browser = webdriver.Chrome(options=chrome_options)
+browser.get("https://dailydigits.today/index1.php")
+getElementByCSSPath("div.form-group:nth-child(3) > input:nth-child(2)").send_keys(username)
+getElementByCSSPath("div.form-group:nth-child(4) > input:nth-child(2)").send_keys(password)
 
-# operators = {}
-# for i in range(4):
-#     ps = list(product(operators, repeat=i))
-#     print(ps)
-#     perms = list(filter(lambda opList : opList.count('p') <= 1, ps))
-#     operators[i] = perms
-operators = {0: [()], 1: [('+',), ('-',), ('*',), ('/',), ('p',)], 2: [('+', '+'), ('+', '-'), ('+', '*'), ('+', '/'), ('+', 'p'), ('-', '+'), ('-', '-'), ('-', '*'), ('-', '/'), ('-', 'p'), ('*', '+'), ('*', '-'), ('*', '*'), ('*', '/'), ('*', 'p'), ('/', '+'), ('/', '-'), ('/', '*'), ('/', '/'), ('/', 'p'), ('p', '+'), ('p', '-'), ('p', '*'), ('p', '/')], 3: [('+', '+', '+'), ('+', '+', '-'), ('+', '+', '*'), ('+', '+', '/'), ('+', '+', 'p'), ('+', '-', '+'), ('+', '-', '-'), ('+', '-', '*'), ('+', '-', '/'), ('+', '-', 'p'), ('+', '*', '+'), ('+', '*', '-'), ('+', '*', '*'), ('+', '*', '/'), ('+', '*', 'p'), ('+', '/', '+'), ('+', '/', '-'), ('+', '/', '*'), ('+', '/', '/'), ('+', '/', 'p'), ('+', 'p', '+'), ('+', 'p', '-'), ('+', 'p', '*'), ('+', 'p', '/'), ('-', '+', '+'), ('-', '+', '-'), ('-', '+', '*'), ('-', '+', '/'), ('-', '+', 'p'), ('-', '-', '+'), ('-', '-', '-'), ('-', '-', '*'), ('-', '-', '/'), ('-', '-', 'p'), ('-', '*', '+'), ('-', '*', '-'), ('-', '*', '*'), ('-', '*', '/'), ('-', '*', 'p'), ('-', '/', '+'), ('-', '/', '-'), ('-', '/', '*'), ('-', '/', '/'), ('-', '/', 'p'), ('-', 'p', '+'), ('-', 'p', '-'), ('-', 'p', '*'), ('-', 'p', '/'), ('*', '+', '+'), ('*', '+', '-'), ('*', '+', '*'), ('*', '+', '/'), ('*', '+', 'p'), ('*', '-', '+'), ('*', '-', '-'), ('*', '-', '*'), ('*', '-', '/'), ('*', '-', 'p'), ('*', '*', '+'), ('*', '*', '-'), ('*', '*', '*'), ('*', '*', '/'), ('*', '*', 'p'), ('*', '/', '+'), ('*', '/', '-'), ('*', '/', '*'), ('*', '/', '/'), ('*', '/', 'p'), ('*', 'p', '+'), ('*', 'p', '-'), ('*', 'p', '*'), ('*', 'p', '/'), ('/', '+', '+'), ('/', '+', '-'), ('/', '+', '*'), ('/', '+', '/'), ('/', '+', 'p'), ('/', '-', '+'), ('/', '-', '-'), ('/', '-', '*'), ('/', '-', '/'), ('/', '-', 'p'), ('/', '*', '+'), ('/', '*', '-'), ('/', '*', '*'), ('/', '*', '/'), ('/', '*', 'p'), ('/', '/', '+'), ('/', '/', '-'), ('/', '/', '*'), ('/', '/', '/'), ('/', '/', 'p'), ('/', 'p', '+'), ('/', 'p', '-'), ('/', 'p', '*'), ('/', 'p', '/'), ('p', '+', '+'), ('p', '+', '-'), ('p', '+', '*'), ('p', '+', '/'), ('p', '-', '+'), ('p', '-', '-'), ('p', '-', '*'), ('p', '-', '/'), ('p', '*', '+'), ('p', '*', '-'), ('p', '*', '*'), ('p', '*', '/'), ('p', '/', '+'), ('p', '/', '-'), ('p', '/', '*'), ('p', '/', '/')]}
+getElementByCSSPath(".btn").click()
 
-powers = {0: [()], 1: [('',), ('p',)], 2: [('', ''), ('p', ''), ('', 'p')], 3: [('', '', ''), ('p', '', ''), ('', 'p', ''), ('', '', 'p')], 4: [('', '', '', ''), ('p', '', '', ''), ('', 'p', '', ''), ('', '', 'p', ''), ('', '', '', 'p')]}
-
-results = {}
-with open(date.today().strftime("%Y-%m-%d") + ".txt", "w+") as f:
-    for combo in combos:
-        for sign in signs[len(combo)]:
-                for root in sqrts[len(combo)]:
-                    for operator in operators[len(combo)-1]:
-                        formula = create_formula(combo, sign, root, operator)
-                        try:
-                            result = eval(formula)
-                            if float(result).is_integer() and (result not in results or (result in results and len(formula) < len(results[result]))):
-                                f.write(formula + "\n")
-                                results[result] = formula
-                        except:
-                            pass
-
-
-print(results[16])
-print(results[-16])
-print(results[5])
+getElementByCSSPath("#modalInstructions > div.modal-header > button").click()
+dailyDigits = getDailyDigits()
+results = generateResults(dailyDigits)
+for _ in range(3):
+    target = int(getElementByCSSPath("#current").text)
+    enterSolution(results[target])
