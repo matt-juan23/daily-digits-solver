@@ -69,7 +69,7 @@ def generateResults(dailyDigits):
                         formula, raw = create_formula(combo, sign, root, operator)
                         try:
                             result = eval(formula)
-                            if float(result).is_integer() and (result not in results or (result in results and len(formula) < len(results[result]))):
+                            if float(result).is_integer() and -150 < result < 150 and (result not in results or (result in results and len(formula) < len(results[result]))):
                                 f.write(formula + "=" + str(result) + "\n")
                                 results[result] = raw
                         except:
