@@ -1,7 +1,7 @@
 from itertools import product
 from datetime import date
 
-dailyDigits = ["7", "4", "4", "8"]
+dailyDigits = ["2", "4", "2", "6"]
 operators = ["+", "-", "*", "/"]
 
 def get_digit_combos(digits, combos, currCombo):
@@ -49,9 +49,10 @@ with open(date.today().strftime("%Y-%m-%d") + ".txt", "w+") as f:
                 formula = create_formula(sign, combo, operatorPerm)
                 result = eval(formula)
                 if float(result).is_integer():
-                    f.write(formula + "\n")
-                    results[result] = formula
+                    if result not in results or (result in results and len(formula) < len(results[result])):
+                        f.write(formula + "\n")
+                        results[result] = formula
 
-print(results[7])
-print(results[-32])
-print(results[-93])
+print(results[10])
+print(results[-10])
+print(results[5])
