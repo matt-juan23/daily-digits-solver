@@ -1,4 +1,5 @@
 import os
+import time
 from selenium import webdriver
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
@@ -24,6 +25,7 @@ def getDailyDigits():
 def enterSolution(formula):
     num = 1
     for value in formula:
+        # time.sleep(0.5)
         if value.isnumeric():
             getElementByID("b"+str(num)).click()
             num += 1
@@ -31,12 +33,12 @@ def enterSolution(formula):
             getElementByID(mapping[value]).click()
     getElementByID("bsubmit").click()
 
-mapping = {"+": "bplus", "-": "bminus", "*": "bmultiply", "/": "bdivide", "s": "broot", "p": "bpower"}
+mapping = {"+": "bplus", "-": "bminus", "*": "bmultiply", "/": "bdivide", "s": "broot", "p": "bpower", ")": "bclose"}
 
-try:
-    username = os.environ["DailyDigitsUsername"]
-    password = os.environ["DailyDigitsPassword"]
-except:
+username = ""
+password = ""
+
+if username == "" or password == "":
     print("USERNAME OR PASSWORD IS NOT SET")
     exit()
 
@@ -46,12 +48,13 @@ browser = webdriver.Chrome(options=chrome_options)
 browser.get("https://dailydigits.today/index1.php")
 getElementByCSSPath("div.form-group:nth-child(3) > input:nth-child(2)").send_keys(username)
 getElementByCSSPath("div.form-group:nth-child(4) > input:nth-child(2)").send_keys(password)
-
 getElementByCSSPath(".btn").click()
 
+time.sleep(1)
 getElementByCSSPath("#modalInstructions > div.modal-header > button").click()
 dailyDigits = getDailyDigits()
 results = generateResults(dailyDigits)
 for _ in range(3):
+    # time.sleep(1)
     target = int(getElementByCSSPath("#current").text)
     enterSolution(results[target])

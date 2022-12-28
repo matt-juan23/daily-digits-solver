@@ -27,7 +27,7 @@ def create_formula(numbers, sign, roots, operators):
     for i in range(len(numbers)):
         if roots[i]:
             formula += sign[i] + "math.sqrt(" + numbers[i] + ")"
-            raw += sign[i] + "s" + numbers[i]
+            raw += sign[i] + "s" + numbers[i] + ")"
         else:
             formula += sign[i] + numbers[i]
             raw += sign[i] + numbers[i]
@@ -39,6 +39,19 @@ def create_formula(numbers, sign, roots, operators):
     # if roots == (False, False, True, False):
     #     print(formula)
     return formula, raw
+
+def testEnterSolution(formula):
+    num = 1
+    for value in formula:
+        # time.sleep(0.5)
+        if value.isnumeric():
+            print("b" + str(num), end=" ")
+            num += 1
+        else:
+            print(mapping[value], end=" ")
+    print("enter")
+
+mapping = {"+": "bplus", "-": "bminus", "*": "bmultiply", "/": "bdivide", "s": "broot", "p": "bpower", ")": "bclose"}
 
 # signs = {}
 # for i in range(5):
@@ -78,5 +91,7 @@ def generateResults(dailyDigits, writeResults=True):
     return results
 
 if __name__ == "__main__":
-    results = generateResults(['0', '2', '3', '0'], False)
-    print(results[-8])
+    results = generateResults(['2', '2', '4', '7'], False)
+    answer = results[56]
+    print(answer)
+    testEnterSolution(answer)
